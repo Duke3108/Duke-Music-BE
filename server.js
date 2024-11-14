@@ -10,14 +10,27 @@ import authRoute from './src/routes/authRoute.js'
 import userRouter from './src/routes/userRoute.js'
 
 //app config
-const corsOptions = {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
-    credentials: true,
-};
 const app = express()
 const port = process.env.PORT || 4000
 connectDB()
 connectCloudinary()
+
+const allowedOrigins = [
+    process.env.CLIENT_URL_1 || 'http://localhost:5173',
+    process.env.CLIENT_URL_2 || 'http://localhost:5174',
+];
+
+// CORS configuration
+const corsOptions = {
+    origin: (origin, callback) => {
+        if (allowedOrigins.includes(origin) || !origin) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    credentials: true,
+};
 
 //middlewares
 app.use(cors(corsOptions))
