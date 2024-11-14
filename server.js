@@ -10,13 +10,17 @@ import authRoute from './src/routes/authRoute.js'
 import userRouter from './src/routes/userRoute.js'
 
 //app config
+const corsOptions = {
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+};
 const app = express()
 const port = process.env.PORT || 4000
 connectDB()
 connectCloudinary()
 
 //middlewares
-app.use(cors())
+app.use(cors(corsOptions))
 app.use(cookieParser())
 app.use(express.json())
 
