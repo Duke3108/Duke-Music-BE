@@ -8,6 +8,7 @@ import connectCloudinary from './src/config/cloudinary.js'
 import albumRouter from './src/routes/albumRoute.js'
 import authRoute from './src/routes/authRoute.js'
 import userRouter from './src/routes/userRoute.js'
+import clientRoute from './src/routes/clientRoute.js'
 
 //app config
 const app = express()
@@ -40,6 +41,7 @@ app.use(express.json())
 //routes
 app.use('/api/song', songRouter)
 app.use('/api/album', albumRouter)
+app.use('/api/client', clientRoute)
 app.use('/v1/auth', authRoute)
 app.use('/v1/user', userRouter)
 
