@@ -4,7 +4,7 @@ const clientSchema = new mongoose.Schema({
     name: {
         type: String,
         require: true,
-        minlength: 6,
+        minlength: 3,
         maxlength: 20,
         unique: true
     },
@@ -17,8 +17,8 @@ const clientSchema = new mongoose.Schema({
     },
     password: {
         type: String,
-        require: true,
-        minlength: 6,
+        required: true,
+        minlength: 10,
     },
     gender: {
         type: String,

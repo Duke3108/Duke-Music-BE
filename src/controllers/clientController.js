@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
-import Client from '../models/clientModel'
+import Client from '../models/clientModel.js'
 
 let refreshTokens = [];
 
@@ -65,9 +65,11 @@ const clientController = {
     //LOGIN
     loginClient: async (req, res) => {
         try {
-            const client = await Client.findOne({ name: req.body.name });
+            const client = await Client.findOne({
+                $or: [{ name: req.body.name }, { email: req.body.email }]
+            });
             if (!client) {
-                return res.status(404).json("Incorrect name");
+                return res.status(404).json("Incorrect username or email");
             }
 
             const validPassword = await bcrypt.compare(
