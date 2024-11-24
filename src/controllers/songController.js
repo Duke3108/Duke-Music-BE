@@ -1,40 +1,73 @@
 import { v2 as cloudinary } from 'cloudinary'
 import songModel from '../models/songModel.js'
+import albumModel from '../models/albumModel.js'
+import artistModel from '../models/artistModel.js'
+import mongoose from 'mongoose'
 
 const addSong = async (req, res) => {
     try {
-        const name = req.body.name
-        const desc = req.body.desc
-        const album = req.body.album
+
+        if (!req.files || !req.files.audio[0] || !req.files.image[0]) {
+            return res.status(400).json({
+                message: "File hình hoặc audio chưa được upload"
+            })
+        }
+
+        const { name, artistId, albumId } = req.body
         const audioFile = req.files.audio[0]
         const imageFile = req.files.image[0]
         const audioUpload = await cloudinary.uploader.upload(audioFile.path, { resource_type: "video" })
         const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" })
         const duration = `${Math.floor(audioUpload.duration / 60)}:${Math.floor(audioUpload.duration % 60)}`
 
-
         const songData = {
             name,
-            desc,
-            album,
             image: imageUpload.secure_url,
             file: audioUpload.secure_url,
-            duration
+            duration,
+            artistId: artistId || [],
+            albumId: albumId || {}
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(artistId)) {
+            return res.status(400).json({ message: "Invalid artistId" });
+        }
+
+        if (!mongoose.Types.ObjectId.isValid(albumId)) {
+            return res.status(400).json({ message: "Invalid albumId" });
         }
 
         const song = songModel(songData)
         await song.save()
 
-        res.json({ success: true, message: "Song added" })
+        if (albumId) {
+            if (!mongoose.Types.ObjectId.isValid(song._id)) {
+                return res.status(400).json({ message: "Invalid song id" });
+            }
+            await albumModel.findByIdAndUpdate(albumId, {
+                $push: { songs: song._id }
+            })
+        }
+
+        if (artistId) {
+            if (!mongoose.Types.ObjectId.isValid(song._id)) {
+                return res.status(400).json({ message: "Invalid song id" });
+            }
+            await artistModel.findByIdAndUpdate(artistId, {
+                $push: { songs: song._id }
+            })
+        }
+
+        res.status(201).json({ message: "Thêm bài hát thành công", song })
 
     } catch (error) {
-        res.json({ success: false })
+        res.status(500).json({ message: 'Internal server error', error })
     }
 }
 
 const listSong = async (req, res) => {
     try {
-        const allSongs = await songModel.find({})
+        const allSongs = await songModel.find().sort({ createdAt: -1 })
         res.json({ success: true, songs: allSongs })
     } catch (error) {
         res.json({ success: false })
@@ -43,49 +76,106 @@ const listSong = async (req, res) => {
 
 const removeSong = async (req, res) => {
     try {
+        const song = await songModel.findById(req.body.id)
+
+        if (song.albumId) {
+            await albumModel.findByIdAndUpdate(albumId, {
+                $pull: { songs: song._id }
+            })
+        }
+
+        if (song.artistId) {
+            await albumModel.findByIdAndUpdate(artistId, {
+                $pull: { songs: song._id }
+            })
+        }
+
         await songModel.findByIdAndDelete(req.body.id)
-        res.json({ success: true, message: "Song removed" })
+        res.status(200).json({ message: "Đã xóa bài hát thành công" })
     } catch (error) {
-        res.json({ success: false })
+        res.status(500).json({ message: 'Internal server error', error })
     }
 }
 
 const updateSong = async (req, res) => {
     try {
-        const songId = req.params.id;
-        const { name, desc, album } = req.body;
-        const song = await songModel.findById(songId);
+        const { id } = req.params;
+        const { name, artistId, albumId } = req.body;
 
+        // Kiểm tra xem id bài hát có hợp lệ không
+        if (!mongoose.Types.ObjectId.isValid(id)) {
+            return res.status(400).json({ message: "Invalid song id" });
+        }
+
+        // Tìm bài hát
+        const song = await songModel.findById(id);
         if (!song) {
-            return res.status(404).json({ success: false, message: "Song not found" });
+            return res.status(404).json({ message: "Bài hát không tồn tại" });
         }
 
-        // Update text fields
-        if (name) song.name = name;
-        if (desc) song.desc = desc;
-        if (album) song.album = album;
+        // Xử lý file upload
+        let updatedAudioUrl = song.file;
+        let updatedImageUrl = song.image;
 
-        if (req.files && req.files.audio) {
-            const audioFile = req.files.audio[0];
-            const audioUpload = await cloudinary.uploader.upload(audioFile.path, { resource_type: "video" });
-            song.file = audioUpload.secure_url;
-            song.duration = `${Math.floor(audioUpload.duration / 60)}:${Math.floor(audioUpload.duration % 60)}`;
+        if (req.files) {
+            if (req.files.audio && req.files.audio[0]) {
+                const audioFile = req.files.audio[0];
+                const audioUpload = await cloudinary.uploader.upload(audioFile.path, { resource_type: "video" });
+                updatedAudioUrl = audioUpload.secure_url;
+            }
+
+            if (req.files.image && req.files.image[0]) {
+                const imageFile = req.files.image[0];
+                const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
+                updatedImageUrl = imageUpload.secure_url;
+            }
         }
 
-        if (req.files && req.files.image) {
-            const imageFile = req.files.image[0];
-            const imageUpload = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
-            song.image = imageUpload.secure_url;
+        // Tính lại duration nếu có tệp audio mới
+        const duration = req.files?.audio?.[0]
+            ? `${Math.floor(audioUpload.duration / 60)}:${Math.floor(audioUpload.duration % 60)}`
+            : song.duration;
+
+        // Cập nhật thông tin bài hát
+        const updatedSong = await songModel.findByIdAndUpdate(
+            id,
+            {
+                name: name || song.name,
+                image: updatedImageUrl,
+                file: updatedAudioUrl,
+                duration,
+                artistId: artistId || song.artistId,
+                albumId: albumId || song.albumId,
+            },
+            { new: true } // Trả về bài hát đã được cập nhật
+        );
+
+        // Cập nhật album nếu albumId thay đổi
+        if (albumId && albumId !== song.albumId?.toString()) {
+            if (!mongoose.Types.ObjectId.isValid(albumId)) {
+                return res.status(400).json({ message: "Invalid albumId" });
+            }
+
+            await albumModel.findByIdAndUpdate(song.albumId, { $pull: { songs: song._id } });
+            await albumModel.findByIdAndUpdate(albumId, { $push: { songs: song._id } });
         }
 
-        await song.save();
+        // Cập nhật artist nếu artistId thay đổi
+        if (artistId && artistId !== song.artistId?.toString()) {
+            if (!mongoose.Types.ObjectId.isValid(artistId)) {
+                return res.status(400).json({ message: "Invalid artistId" });
+            }
 
-        res.json({ success: true, message: "Song Updated", song });
+            await artistModel.findByIdAndUpdate(song.artistId, { $pull: { songs: song._id } });
+            await artistModel.findByIdAndUpdate(artistId, { $push: { songs: song._id } });
+        }
 
+        res.status(200).json({ message: "Cập nhật bài hát thành công", song: updatedSong });
     } catch (error) {
-        res.status(500).json({ success: false, message: "An error occurred", error: error.message });
+        res.status(500).json({ message: "Internal server error", error });
     }
 };
+
 
 
 export { addSong, listSong, removeSong, updateSong }

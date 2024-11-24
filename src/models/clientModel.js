@@ -20,6 +20,9 @@ const clientSchema = new mongoose.Schema({
         required: true,
         minlength: 10,
     },
+    playlist: [
+        { type: mongoose.Schema.Types.ObjectId, ref: 'playlist' }
+    ],
     gender: {
         type: String,
         require: true
@@ -27,6 +30,10 @@ const clientSchema = new mongoose.Schema({
     birthday: {
         type: Date,
         require: true
+    },
+    imageUrl: {
+        type: String,
+        default: ""
     }
 }, { timestamps: true }
 )

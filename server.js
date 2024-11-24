@@ -9,6 +9,8 @@ import albumRouter from './src/routes/albumRoute.js'
 import authRoute from './src/routes/authRoute.js'
 import userRouter from './src/routes/userRoute.js'
 import clientRoute from './src/routes/clientRoute.js'
+import playlistRouter from './src/routes/playlistRoute.js'
+import artistRouter from './src/routes/artistRouter.js'
 
 //app config
 const app = express()
@@ -42,6 +44,8 @@ app.use(express.json())
 app.use('/api/song', songRouter)
 app.use('/api/album', albumRouter)
 app.use('/api/client', clientRoute)
+app.use('/api/playlist', playlistRouter)
+app.use('/api/artist', artistRouter)
 app.use('/v1/auth', authRoute)
 app.use('/v1/user', userRouter)
 

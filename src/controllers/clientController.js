@@ -29,7 +29,9 @@ const clientController = {
                 email: req.body.email,
                 password: hashed,
                 gender: req.body.gender,
-                birthday: req.body.birthday
+                birthday: req.body.birthday,
+                playlist: req.body.playlist || [],
+                imageUrl: ""
             });
 
             //Save Client to DB
@@ -106,19 +108,19 @@ const clientController = {
         const refreshToken = req.cookies.refreshToken;
         //Send error if token is not valid
         if (!refreshToken) {
-            return res.status(401).json("You're not cliententicated");
+            return res.status(401).json("You're not authenticated");
         }
         if (!refreshTokens.includes(refreshToken)) {
             return res.status(403).json("Refresh token is not valid");
         }
-        jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY, (err, Client) => {
+        jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY, (err, client) => {
             if (err) {
                 console.log(err);
             }
             refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
             //create new access token, refresh token and send to Client
-            const newAccessToken = clientController.generateAccessToken(Client);
-            const newRefreshToken = clientController.generateRefreshToken(Client);
+            const newAccessToken = clientController.generateAccessToken(client);
+            const newRefreshToken = clientController.generateRefreshToken(client);
             refreshTokens.push(newRefreshToken);
             res.cookie("refreshToken", refreshToken, {
                 httpOnly: true,
@@ -137,6 +139,7 @@ const clientController = {
         res.clearCookie("refreshToken");
         res.status(200).json("Logged out successfully!");
     },
+
 };
 
 export default clientController
