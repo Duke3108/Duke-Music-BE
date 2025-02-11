@@ -1,4 +1,4 @@
-import { addSong, listSong, removeSong, updateSong } from "../controllers/songController.js";
+import { addSong, listSong, removeSong, searchSong, updateSong } from "../controllers/songController.js";
 import express from 'express'
 import upload from "../middleware/multer.js";
 
@@ -8,5 +8,6 @@ songRouter.post('/add', upload.fields([{ name: 'image', maxCount: 1 }, { name: '
 songRouter.get('/list', listSong)
 songRouter.post('/remove', removeSong)
 songRouter.put('/update/:id', upload.fields([{ name: 'audio', maxCount: 1 }, { name: 'image', maxCount: 1 }]), updateSong)
+songRouter.get('/:keyword', searchSong)
 
 export default songRouter

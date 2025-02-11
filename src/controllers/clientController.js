@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 import Client from '../models/clientModel.js'
 
-let refreshTokens = [];
+
 
 const clientController = {
     //REGISTER
@@ -69,7 +69,7 @@ const clientController = {
         try {
             const client = await Client.findOne({
                 $or: [{ name: req.body.name }, { email: req.body.email }]
-            });
+            }).populate('playlist');
             if (!client) {
                 return res.status(404).json("Incorrect username or email");
             }
@@ -87,7 +87,7 @@ const clientController = {
                 const accessToken = clientController.generateAccessToken(Client);
                 //Generate refresh token
                 const refreshToken = clientController.generateRefreshToken(Client);
-                refreshTokens.push(refreshToken);
+
                 //STORE REFRESH TOKEN IN COOKIE
                 res.cookie("refreshToken", refreshToken, {
                     httpOnly: true,
@@ -110,19 +110,17 @@ const clientController = {
         if (!refreshToken) {
             return res.status(401).json("You're not authenticated");
         }
-        if (!refreshTokens.includes(refreshToken)) {
-            return res.status(403).json("Refresh token is not valid");
-        }
+
         jwt.verify(refreshToken, process.env.JWT_REFRESH_KEY, (err, client) => {
             if (err) {
                 console.log(err);
             }
-            refreshTokens = refreshTokens.filter((token) => token !== refreshToken);
+
             //create new access token, refresh token and send to Client
             const newAccessToken = clientController.generateAccessToken(client);
             const newRefreshToken = clientController.generateRefreshToken(client);
-            refreshTokens.push(newRefreshToken);
-            res.cookie("refreshToken", refreshToken, {
+
+            res.cookie("refreshToken", newRefreshToken, {
                 httpOnly: true,
                 secure: false,
                 path: "/",
@@ -135,7 +133,7 @@ const clientController = {
     //LOG OUT
     logOut: async (req, res) => {
         //Clear cookies when Client logs out
-        refreshTokens = refreshTokens.filter((token) => token !== req.body.token);
+
         res.clearCookie("refreshToken");
         res.status(200).json("Logged out successfully!");
     },

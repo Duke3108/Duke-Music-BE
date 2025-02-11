@@ -41,20 +41,25 @@ export const listArtist = async (req, res) => {
     }
 }
 
-export const getArtistById = async (req, res) => {
+/*export const getArtistByIdOrName = async (req, res) => {
     try {
-        const { id } = req.params
+        const { params } = req.params
 
-        const artist = await artistModel.findById(id)
+        const artistById = await artistModel.findById(params)
 
-        if (!artist) {
-            return res.status(404).json({ message: 'không tìm thấy Nghệ sĩ' })
+        if (!artistById) {
+            
+            if (!artistByName) {
+                return res.status(404).json({ message: 'không tìm thấy Nghệ sĩ' })
+            }
+            res.json({ success: true, artists: artistByName })
         }
-        res.json({ success: true, artists: artist })
+
+        res.json({ success: true, artists: artistById })
     } catch (error) {
         res.json({ success: false })
     }
-}
+}*/
 
 export const getArtistByName = async (req, res) => {
     try {

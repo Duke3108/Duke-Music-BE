@@ -29,30 +29,16 @@ const addSong = async (req, res) => {
             albumId: albumId || {}
         }
 
-        if (!mongoose.Types.ObjectId.isValid(artistId)) {
-            return res.status(400).json({ message: "Invalid artistId" });
-        }
-
-        if (!mongoose.Types.ObjectId.isValid(albumId)) {
-            return res.status(400).json({ message: "Invalid albumId" });
-        }
-
         const song = songModel(songData)
         await song.save()
 
         if (albumId) {
-            if (!mongoose.Types.ObjectId.isValid(song._id)) {
-                return res.status(400).json({ message: "Invalid song id" });
-            }
             await albumModel.findByIdAndUpdate(albumId, {
                 $push: { songs: song._id }
             })
         }
 
         if (artistId) {
-            if (!mongoose.Types.ObjectId.isValid(song._id)) {
-                return res.status(400).json({ message: "Invalid song id" });
-            }
             await artistModel.findByIdAndUpdate(artistId, {
                 $push: { songs: song._id }
             })
@@ -67,12 +53,44 @@ const addSong = async (req, res) => {
 
 const listSong = async (req, res) => {
     try {
-        const allSongs = await songModel.find().sort({ createdAt: -1 })
+        const allSongs = await songModel.find().sort({ createdAt: -1 }).populate('artistId')
         res.json({ success: true, songs: allSongs })
     } catch (error) {
         res.json({ success: false })
     }
 }
+
+const searchSong = async (req, res) => {
+    try {
+        const { name, artist, album } = req.query;
+
+
+        const filter = {};
+
+        if (name) {
+            filter.name = { $regex: name, $options: "i" };
+        }
+        if (artist) {
+            filter.artistId = artist;
+        }
+        if (album) {
+            filter.albumId = album;
+        }
+
+        const songs = await songModel
+            .find(filter)
+            .sort({ createdAt: -1 })
+            .populate('artistId')
+            .populate('albumId')
+
+        // Trả về kết quả
+        res.json({ success: true, songs });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Internal server error" });
+    }
+};
+
 
 const removeSong = async (req, res) => {
     try {
@@ -178,4 +196,4 @@ const updateSong = async (req, res) => {
 
 
 
-export { addSong, listSong, removeSong, updateSong }
+export { addSong, listSong, removeSong, updateSong, searchSong }

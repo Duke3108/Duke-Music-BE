@@ -86,3 +86,20 @@ export const getPlaylist = async (req, res) => {
         res.status(500).json({ message: "Lỗi khi lấy playlist", error: err.message });
     }
 };
+
+export const getPlaylistById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const playlist = await playlistModel.findById(id)
+            .populate('songs') // Lấy chi tiết các bài hát trong playlist
+            .populate('ownerId', 'name email'); // Lấy thông tin chủ sở hữu (tên và email)
+
+        if (!playlist) {
+            return res.status(404).json({ message: "Không tìm thấy playlist" });
+        }
+
+        return res.status(200).json({ message: "Lấy chi tiết playlist thành công", playlist });
+    } catch (error) {
+        res.status(500).json({ message: "Lỗi khi lấy playlist", error: err.message });
+    }
+}

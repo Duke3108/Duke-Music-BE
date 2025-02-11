@@ -1,5 +1,5 @@
 import express from 'express'
-import { addPlaylist, addSongToPlaylist, getPlaylist } from '../controllers/playlistController.js'
+import { addPlaylist, addSongToPlaylist, getPlaylist, getPlaylistById } from '../controllers/playlistController.js'
 
 const playlistRouter = express.Router()
 
@@ -9,7 +9,7 @@ playlistRouter.post('/addSong', addSongToPlaylist)
 
 playlistRouter.get('/', getPlaylist)
 
-playlistRouter.get('/:id')
+playlistRouter.get('/:id', getPlaylistById)
 
 playlistRouter.put('update/:id')
 

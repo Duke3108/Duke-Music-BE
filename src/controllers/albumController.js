@@ -168,7 +168,7 @@ const updateAlbum = async (req, res) => {
 };
 
 
-const getAlbumById = async (req, res) => {
+/*const getAlbumById = async (req, res) => {
     try {
         const { id } = req.params
 
@@ -182,13 +182,13 @@ const getAlbumById = async (req, res) => {
     } catch (error) {
         res.status(500).json({ message: 'Internal server error', error })
     }
-}
+}*/
 
 const getAlbumByName = async (req, res) => {
     try {
         const { name } = req.params
 
-        const album = await albumModel.findOne({ name: name }).populate("songs")
+        const album = await albumModel.findOne({ name: name }).populate("artistId").populate("songs")
 
         if (!album) {
             return res.status(404).json({ message: 'không tìm thấy album' })
@@ -201,4 +201,4 @@ const getAlbumByName = async (req, res) => {
 }
 
 
-export { addAlbum, listAlbum, deleteAlbum, updateAlbum, getAlbumById, getAlbumByName }
+export { addAlbum, listAlbum, deleteAlbum, updateAlbum, getAlbumByName }
