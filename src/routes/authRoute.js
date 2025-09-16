@@ -12,7 +12,7 @@ authRoute.post("/refresh", authController.requestRefreshToken);
 //LOG IN
 authRoute.post("/login", authController.loginUser);
 //LOG OUT
-authRoute.post("/logout", verifyToken, authController.logOut);
+authRoute.post("/logout", authController.logOut);
 
 
 export default authRoute
