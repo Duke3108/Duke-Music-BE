@@ -55,11 +55,6 @@ const deleteAlbum = async (req, res) => {
     try {
         const { id } = req.params;
 
-        // Kiểm tra xem id album có hợp lệ không
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid album id" });
-        }
-
         // Tìm album cần xóa
         const album = await albumModel.findById(id);
         if (!album) {
@@ -95,11 +90,6 @@ const updateAlbum = async (req, res) => {
     try {
         const { id } = req.params;
         const { name, artistId, bgColour, releaseYear, songs } = req.body;
-
-        // Kiểm tra id album hợp lệ
-        if (!mongoose.Types.ObjectId.isValid(id)) {
-            return res.status(400).json({ message: "Invalid album id" });
-        }
 
         // Tìm album cần cập nhật
         const album = await albumModel.findById(id);
