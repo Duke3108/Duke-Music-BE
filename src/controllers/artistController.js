@@ -1,7 +1,7 @@
 import artistModel from "../models/artistModel.js";
 import { v2 as cloudinary } from 'cloudinary'
 import mongoose from "mongoose";
-import albumModel from "../models/album.js";
+import albumModel from "../models/albumModel.js";
 import songModel from "../models/songModel.js";
 
 
