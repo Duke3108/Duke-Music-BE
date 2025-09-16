@@ -6,7 +6,7 @@ const albumRouter = express.Router()
 
 albumRouter.post('/add', upload.single('image'), addAlbum)
 albumRouter.get('/list', listAlbum)
-albumRouter.post('/remove', deleteAlbum)
+albumRouter.put('/remove/:id', deleteAlbum)
 albumRouter.put('/update/:id', upload.single('image'), updateAlbum)
 albumRouter.get('/:name', getAlbumByName)
 
