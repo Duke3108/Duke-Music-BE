@@ -21,6 +21,8 @@ connectCloudinary()
 const allowedOrigins = [
     process.env.CLIENT_URL_1 || 'http://localhost:5173',
     process.env.CLIENT_URL_2 || 'http://localhost:5174',
+    'https://duke-music-admin-fe.vercel.app',
+    'https://duke-music-client-fe.vercel.app',
 ];
 
 // CORS configuration
