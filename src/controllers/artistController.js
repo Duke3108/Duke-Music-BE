@@ -1,5 +1,10 @@
 import artistModel from "../models/artistModel.js";
 import { v2 as cloudinary } from 'cloudinary'
+import mongoose from "mongoose";
+import albumModel from "../models/album.js";
+import artistModel from "../models/artist.js";
+import songModel from "../models/song.js";
+
 
 export const addArtist = async (req, res) => {
     try {
